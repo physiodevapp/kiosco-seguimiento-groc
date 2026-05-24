@@ -404,28 +404,93 @@
   .empty-state p { font-size: 0.88rem; line-height: 1.6; }
 
   /* ── Lista seguimientos ──────────────────────────── */
+  .list-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+  }
+  .list-header label { margin: 0; }
+  .total-badge {
+    font-size: 0.72rem;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 20px;
+    background: rgba(154,173,202,0.12);
+    color: var(--accent);
+    letter-spacing: 0.3px;
+  }
+  .list-scroll-wrap {
+    position: relative;
+    margin-bottom: 10px;
+  }
+  .list-scroll-wrap::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 48px;
+    background: linear-gradient(to bottom, transparent, var(--surface));
+    border-radius: 0 0 10px 10px;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+  .list-scroll-wrap.has-more::after { opacity: 1; }
   .seguim-list {
     display: flex;
     flex-direction: column;
     gap: 8px;
-    margin-bottom: 18px;
-    max-height: min(260px, 28dvh);
+    overflow: hidden;
+  }
+  .seguim-list.expandida {
+    max-height: min(300px, 36dvh);
     overflow-y: auto;
     padding-right: 4px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
   }
-  @media (min-width: 768px) {
-    .seguim-list { max-height: 320px; }
+  .seguim-list.expandida::-webkit-scrollbar       { width: 4px; }
+  .seguim-list.expandida::-webkit-scrollbar-track { background: transparent; }
+  .seguim-list.expandida::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+  .ver-todos-btn {
+    width: 100%;
+    background: transparent;
+    border: 1px dashed var(--border);
+    border-radius: 10px;
+    color: var(--muted);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.82rem;
+    padding: 10px;
+    cursor: pointer;
+    transition: border-color 0.2s, color 0.2s;
+    margin-bottom: 16px;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
   }
+  .ver-todos-btn.visible { display: flex; }
+  .ver-todos-btn:active  { border-color: var(--accent); color: var(--accent2); }
+  .ver-todos-btn .arrow  { transition: transform 0.25s; display: inline-block; }
+  .ver-todos-btn.expanded .arrow { transform: rotate(180deg); }
   .seguim-item {
     background: var(--surface2);
     border: 1px solid var(--border);
+    border-left-width: 3px;
     border-radius: 10px;
     padding: 12px 14px;
     display: flex;
     justify-content: space-between;
     align-items: center;
     gap: 8px;
+    flex-shrink: 0;
   }
+  .seguim-item.urgente { border-left-color: var(--danger); }
+  .seguim-item.pronto  { border-left-color: var(--warning); }
+  .seguim-item.ok      { border-left-color: var(--success); }
+  .seguim-item.hidden  { display: none; }
   .seguim-item-left strong {
     display: block;
     font-size: 0.9rem;
@@ -451,6 +516,10 @@
   .badge-soon {
     background: rgba(249,168,37,0.15);
     color: #f9a825;
+  }
+  .badge-urgente {
+    background: rgba(248,81,73,0.15);
+    color: var(--danger);
   }
 
   /* ── Éxito ───────────────────────────────────────── */
@@ -555,14 +624,21 @@
       </div>
     </div>
 
-    <div style="margin-bottom:12px">
+    <div class="list-header">
       <label>Seguimientos activos</label>
+      <span class="total-badge" id="total-badge" style="display:none"></span>
+    </div>
+    <div class="list-scroll-wrap" id="list-wrap">
       <div class="seguim-list" id="seguim-list">
         <div class="empty-state">
           <div class="spinner"></div>
         </div>
       </div>
     </div>
+    <button class="ver-todos-btn" id="ver-todos-btn" onclick="toggleVerTodos()">
+      <span class="arrow">▼</span>
+      <span id="ver-todos-label"></span>
+    </button>
 
     <button class="btn btn-primary" onclick="goToForm()">
       ＋ &nbsp;Nuevo seguimiento
@@ -730,7 +806,16 @@ function cargarSeguimientos() {
 }
 
 function renderSeguimientos(lista) {
-  const container = document.getElementById('seguim-list');
+  const container  = document.getElementById('seguim-list');
+  const totalBadge = document.getElementById('total-badge');
+  const verBtn     = document.getElementById('ver-todos-btn');
+  const listWrap   = document.getElementById('list-wrap');
+
+  container.classList.remove('expandida');
+  verBtn.classList.remove('expanded', 'visible');
+  totalBadge.style.display = 'none';
+  listWrap.classList.remove('has-more');
+
   if (!lista || lista.length === 0) {
     container.innerHTML = `
       <div class="empty-state">
@@ -743,16 +828,35 @@ function renderSeguimientos(lista) {
   const hoy = new Date();
   hoy.setHours(0,0,0,0);
 
-  container.innerHTML = lista.map(s => {
+  const LIMITE = 4;
+
+  const conDiff = lista.map(s => {
     const partes = String(s.proximaReev).split('/');
     const prox   = new Date(partes[2], partes[1]-1, partes[0]);
     const diff   = Math.ceil((prox - hoy) / (1000*60*60*24));
-    const badge  = diff <= 3
-      ? `<span class="badge badge-soon">Pronto</span>`
-      : `<span class="badge badge-ok">Activo</span>`;
+    return { ...s, diff };
+  }).sort((a, b) => a.diff - b.diff);
+
+  if (conDiff.length > LIMITE) {
+    totalBadge.textContent  = `${conDiff.length} activos`;
+    totalBadge.style.display = '';
+  }
+
+  container.innerHTML = conDiff.map((s, i) => {
+    let urgClass, badge;
+    if (s.diff <= 0) {
+      urgClass = 'urgente';
+      badge    = `<span class="badge badge-urgente">${s.diff === 0 ? 'Hoy' : 'Vencido'}</span>`;
+    } else if (s.diff <= 3) {
+      urgClass = 'pronto';
+      badge    = `<span class="badge badge-soon">En ${s.diff} día${s.diff === 1 ? '' : 's'}</span>`;
+    } else {
+      urgClass = 'ok';
+      badge    = `<span class="badge badge-ok">Activo</span>`;
+    }
 
     return `
-      <div class="seguim-item">
+      <div class="seguim-item ${urgClass}${i >= LIMITE ? ' hidden' : ''}">
         <div class="seguim-item-left">
           <strong>📅 ${s.fecha} · ${s.hora}</strong>
           <span>Próxima reev. ${s.proximaReev}</span>
@@ -760,6 +864,43 @@ function renderSeguimientos(lista) {
         ${badge}
       </div>`;
   }).join('');
+
+  if (conDiff.length > LIMITE) {
+    document.getElementById('ver-todos-label').textContent = `Ver los ${conDiff.length - LIMITE} restantes`;
+    verBtn.classList.add('visible');
+  }
+}
+
+function toggleVerTodos() {
+  const list    = document.getElementById('seguim-list');
+  const wrap    = document.getElementById('list-wrap');
+  const btn     = document.getElementById('ver-todos-btn');
+  const label   = document.getElementById('ver-todos-label');
+  const items   = list.querySelectorAll('.seguim-item');
+  const LIMITE  = 4;
+  const ocultos = items.length - LIMITE;
+  const expandido = list.classList.toggle('expandida');
+
+  items.forEach((el, i) => {
+    if (i >= LIMITE) el.classList.toggle('hidden', !expandido);
+  });
+
+  btn.classList.toggle('expanded', expandido);
+  label.textContent = expandido ? 'Ver menos' : `Ver los ${ocultos} restantes`;
+
+  if (expandido) {
+    list.scrollTop = 0;
+    setTimeout(() => actualizarSombra(), 50);
+  } else {
+    wrap.classList.remove('has-more');
+  }
+}
+
+function actualizarSombra() {
+  const list = document.getElementById('seguim-list');
+  const wrap = document.getElementById('list-wrap');
+  if (!list || !wrap) return;
+  wrap.classList.toggle('has-more', list.scrollHeight - list.scrollTop > list.clientHeight + 2);
 }
 
 // ── Formulario ───────────────────────────────────
@@ -844,6 +985,7 @@ function cerrarSesion() {
 
 // ── Init ─────────────────────────────────────────
 renderPinDisplay();
+document.getElementById('seguim-list').addEventListener('scroll', actualizarSombra);
 </script>
 </body>
 </html>
