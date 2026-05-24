@@ -201,9 +201,7 @@
     font-size: 1rem;
     color: var(--muted);
   }
-  .numpad-btn.zero { grid-column: 2; }
   .numpad-btn.enter {
-    grid-column: 3;
     background: var(--brand);
     border-color: var(--brand);
     color: #fff;
@@ -377,6 +375,25 @@
     #screen-form .form-group { margin-bottom: 10px; }
   }
 
+  /* ── Login compacto en pantallas bajas ───────────── */
+  @media (max-height: 700px) {
+    #screen-login {
+      padding-top: max(env(safe-area-inset-top, 8px), 8px);
+      padding-bottom: 8px;
+    }
+    #screen-login .logo-wrap img { height: 30px; }
+    #screen-login .logo { font-size: 1.3rem; margin-bottom: 4px; }
+    #screen-login .subtitle { margin-bottom: 16px; }
+    #screen-login .card { padding: 18px 16px; }
+    #screen-login .card-desc { display: none; }
+    #screen-login .pin-display { margin-bottom: 16px; min-height: 42px; }
+    #screen-login .numpad { gap: 8px; }
+  }
+  @media (max-height: 620px) {
+    #screen-login .logo { display: none; }
+    #screen-login .subtitle { margin-bottom: 12px; }
+  }
+
   /* ── Estado vacío ────────────────────────────────── */
   .empty-state {
     text-align: center;
@@ -507,8 +524,8 @@
       <button class="numpad-btn" onclick="numpadPress('7')">7</button>
       <button class="numpad-btn" onclick="numpadPress('8')">8</button>
       <button class="numpad-btn" onclick="numpadPress('9')">9</button>
-      <button class="numpad-btn zero" onclick="numpadPress('0')">0</button>
       <button class="numpad-btn del" onclick="numpadDel()">⌫</button>
+      <button class="numpad-btn zero" onclick="numpadPress('0')">0</button>
       <button class="numpad-btn enter" onclick="validarLogin()">OK</button>
     </div>
 
