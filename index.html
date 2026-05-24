@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Seguimientos · Fisioterapia</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  /* ── Reset & Variables ───────────────────────────── */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:        #0d1117;
+    --surface:   #161b22;
+    --surface2:  #21262d;
+    --border:    #30363d;
+    --accent:    #4fa3e0;
+    --accent2:   #79c0ff;
+    --success:   #56d364;
+    --danger:    #f85149;
+    --text:      #e6edf3;
+    --muted:     #8b949e;
+    --radius:    16px;
+    --shadow:    0 8px 32px rgba(0,0,0,0.4);
+  }
+
+  html, body {
+    height: 100%;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 18px;
+    overflow: hidden;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+  }
+
+  /* ── Fondo animado ───────────────────────────────── */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 80% 60% at 20% 10%, rgba(79,163,224,0.08) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 50% at 80% 90%, rgba(86,211,100,0.05) 0%, transparent 60%);
+    pointer-events: none;
+  }
+
+  /* ── Pantallas ───────────────────────────────────── */
+  .screen {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 24px;
+    opacity: 0;
+    transform: translateY(20px);
+    pointer-events: none;
+    transition: opacity 0.35s ease, transform 0.35s ease;
+  }
+  .screen.active {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: all;
+  }
+
+  /* ── Logo / Header ───────────────────────────────── */
+  .logo {
+    font-family: 'DM Serif Display', serif;
+    font-size: 2rem;
+    color: var(--accent2);
+    letter-spacing: -0.5px;
+    margin-bottom: 8px;
+    text-align: center;
+  }
+  .subtitle {
+    color: var(--muted);
+    font-size: 0.85rem;
+    font-weight: 300;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 48px;
+    text-align: center;
+  }
+
+  /* ── Card ────────────────────────────────────────── */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 40px 36px;
+    width: 100%;
+    max-width: 480px;
+    box-shadow: var(--shadow);
+  }
+
+  .card-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.4rem;
+    color: var(--text);
+    margin-bottom: 6px;
+  }
+  .card-desc {
+    color: var(--muted);
+    font-size: 0.85rem;
+    margin-bottom: 32px;
+    line-height: 1.6;
+  }
+
+  /* ── Teclado numérico ────────────────────────────── */
+  .pin-display {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin-bottom: 28px;
+    min-height: 56px;
+    align-items: center;
+  }
+  .pin-char {
+    width: 44px;
+    height: 56px;
+    border: 2px solid var(--border);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.6rem;
+    font-weight: 600;
+    color: var(--accent2);
+    transition: border-color 0.2s, background 0.2s;
+    background: var(--surface2);
+  }
+  .pin-char.filled {
+    border-color: var(--accent);
+    background: rgba(79,163,224,0.1);
+  }
+
+  .numpad {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    max-width: 320px;
+    margin: 0 auto;
+  }
+  .numpad-btn {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 1.4rem;
+    font-weight: 500;
+    height: 72px;
+    cursor: pointer;
+    transition: background 0.15s, transform 0.1s, border-color 0.15s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .numpad-btn:active {
+    background: rgba(79,163,224,0.15);
+    border-color: var(--accent);
+    transform: scale(0.96);
+  }
+  .numpad-btn.del {
+    font-size: 1rem;
+    color: var(--muted);
+  }
+  .numpad-btn.zero {
+    grid-column: 2;
+  }
+  .numpad-btn.enter {
+    grid-column: 3;
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+    font-size: 0.9rem;
+    font-weight: 600;
+  }
+  .numpad-btn.enter:active {
+    background: var(--accent2);
+  }
+
+  /* ── Error ───────────────────────────────────────── */
+  .error-msg {
+    color: var(--danger);
+    font-size: 0.85rem;
+    text-align: center;
+    margin-top: 16px;
+    min-height: 24px;
+    transition: opacity 0.3s;
+  }
+
+  /* ── Bienvenida fisio ────────────────────────────── */
+  .fisio-badge {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    background: rgba(79,163,224,0.08);
+    border: 1px solid rgba(79,163,224,0.2);
+    border-radius: 12px;
+    padding: 16px 20px;
+    margin-bottom: 32px;
+  }
+  .fisio-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent), var(--success));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: #fff;
+    flex-shrink: 0;
+  }
+  .fisio-info strong {
+    display: block;
+    color: var(--text);
+    font-size: 1rem;
+  }
+  .fisio-info span {
+    color: var(--muted);
+    font-size: 0.8rem;
+  }
+
+  /* ── Botones ─────────────────────────────────────── */
+  .btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    width: 100%;
+    padding: 18px 24px;
+    border-radius: 12px;
+    border: none;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.1s, opacity 0.2s, background 0.2s;
+    margin-bottom: 12px;
+  }
+  .btn:active { transform: scale(0.98); }
+  .btn-primary {
+    background: var(--accent);
+    color: #fff;
+  }
+  .btn-primary:hover { background: var(--accent2); }
+  .btn-ghost {
+    background: var(--surface2);
+    color: var(--muted);
+    border: 1px solid var(--border);
+    font-weight: 400;
+  }
+  .btn-ghost:hover { color: var(--text); border-color: var(--muted); }
+  .btn-success {
+    background: var(--success);
+    color: #0d1117;
+  }
+  .btn:disabled { opacity: 0.4; pointer-events: none; }
+
+  /* ── Formulario ──────────────────────────────────── */
+  .form-group {
+    margin-bottom: 20px;
+  }
+  label {
+    display: block;
+    color: var(--muted);
+    font-size: 0.8rem;
+    font-weight: 500;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+  .fecha-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .fecha-btn {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 1rem;
+    padding: 14px 12px;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+    text-align: center;
+  }
+  .fecha-btn.selected {
+    border-color: var(--accent);
+    background: rgba(79,163,224,0.12);
+    color: var(--accent2);
+    font-weight: 600;
+  }
+
+  /* Selector de fecha nativo */
+  input[type="date"] {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 1.1rem;
+    padding: 14px 16px;
+    outline: none;
+    -webkit-appearance: none;
+    transition: border-color 0.2s;
+  }
+  input[type="date"]:focus { border-color: var(--accent); }
+  input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(0.7);
+    cursor: pointer;
+  }
+
+  /* ── Estado vacío ────────────────────────────────── */
+  .empty-state {
+    text-align: center;
+    padding: 32px 0;
+    color: var(--muted);
+  }
+  .empty-state .icon { font-size: 2.5rem; margin-bottom: 12px; }
+  .empty-state p { font-size: 0.9rem; line-height: 1.6; }
+
+  /* ── Lista seguimientos ──────────────────────────── */
+  .seguim-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 24px;
+    max-height: 280px;
+    overflow-y: auto;
+    padding-right: 4px;
+  }
+  .seguim-item {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .seguim-item-left strong {
+    display: block;
+    font-size: 0.95rem;
+    color: var(--text);
+  }
+  .seguim-item-left span {
+    font-size: 0.78rem;
+    color: var(--muted);
+  }
+  .badge {
+    font-size: 0.72rem;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 20px;
+    letter-spacing: 0.5px;
+  }
+  .badge-ok {
+    background: rgba(86,211,100,0.15);
+    color: var(--success);
+  }
+  .badge-soon {
+    background: rgba(249,168,37,0.15);
+    color: #f9a825;
+  }
+
+  /* ── Éxito ───────────────────────────────────────── */
+  .success-icon {
+    font-size: 4rem;
+    margin-bottom: 16px;
+    animation: pop 0.4s ease;
+  }
+  @keyframes pop {
+    0%   { transform: scale(0.5); opacity: 0; }
+    70%  { transform: scale(1.15); }
+    100% { transform: scale(1); opacity: 1; }
+  }
+  .success-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.6rem;
+    color: var(--success);
+    margin-bottom: 8px;
+    text-align: center;
+  }
+  .success-desc {
+    color: var(--muted);
+    font-size: 0.9rem;
+    text-align: center;
+    line-height: 1.6;
+    margin-bottom: 32px;
+  }
+
+  /* ── Spinner ─────────────────────────────────────── */
+  .spinner {
+    width: 32px; height: 32px;
+    border: 3px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    margin: 0 auto;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── Horas ───────────────────────────────────────── */
+  .horas-scroll {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════
+     PANTALLA 1 · LOGIN (número de colegiado)
+═══════════════════════════════════════════════════ -->
+<div class="screen active" id="screen-login">
+  <div class="logo">Seguimientos</div>
+  <div class="subtitle">Control de pacientes</div>
+
+  <div class="card">
+    <div class="card-title">Identificación</div>
+    <div class="card-desc">Introduce tu número de colegiado para continuar.</div>
+
+    <div class="pin-display" id="pin-display"></div>
+
+    <div class="numpad">
+      <button class="numpad-btn" onclick="numpadPress('1')">1</button>
+      <button class="numpad-btn" onclick="numpadPress('2')">2</button>
+      <button class="numpad-btn" onclick="numpadPress('3')">3</button>
+      <button class="numpad-btn" onclick="numpadPress('4')">4</button>
+      <button class="numpad-btn" onclick="numpadPress('5')">5</button>
+      <button class="numpad-btn" onclick="numpadPress('6')">6</button>
+      <button class="numpad-btn" onclick="numpadPress('7')">7</button>
+      <button class="numpad-btn" onclick="numpadPress('8')">8</button>
+      <button class="numpad-btn" onclick="numpadPress('9')">9</button>
+      <button class="numpad-btn zero" onclick="numpadPress('0')">0</button>
+      <button class="numpad-btn del" onclick="numpadDel()">⌫</button>
+      <button class="numpad-btn enter" onclick="validarLogin()">OK</button>
+    </div>
+
+    <div class="error-msg" id="login-error"></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════
+     PANTALLA 2 · DASHBOARD FISIO
+═══════════════════════════════════════════════════ -->
+<div class="screen" id="screen-dashboard">
+  <div class="logo">Seguimientos</div>
+
+  <div class="card" style="max-width:520px">
+    <div class="fisio-badge">
+      <div class="fisio-avatar" id="fisio-avatar">?</div>
+      <div class="fisio-info">
+        <strong id="fisio-nombre">—</strong>
+        <span id="fisio-colegiado">Colegiado nº —</span>
+      </div>
+    </div>
+
+    <div style="margin-bottom:12px">
+      <label>Seguimientos activos</label>
+      <div class="seguim-list" id="seguim-list">
+        <div class="empty-state">
+          <div class="spinner"></div>
+        </div>
+      </div>
+    </div>
+
+    <button class="btn btn-primary" onclick="goToForm()">
+      ＋ &nbsp;Nuevo seguimiento
+    </button>
+    <button class="btn btn-ghost" onclick="cerrarSesion()">
+      Salir
+    </button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════
+     PANTALLA 3 · FORMULARIO NUEVA PRIMERA VISITA
+═══════════════════════════════════════════════════ -->
+<div class="screen" id="screen-form">
+  <div class="logo">Nueva visita</div>
+
+  <div class="card" style="max-width:520px">
+    <div class="card-title">Primera visita</div>
+    <div class="card-desc">Selecciona la fecha y hora de la primera sesión.</div>
+
+    <div class="form-group">
+      <label>Fecha</label>
+      <input type="date" id="input-fecha">
+    </div>
+
+    <div class="form-group">
+      <label>Hora</label>
+      <div class="horas-scroll" id="horas-container"></div>
+    </div>
+
+    <div class="error-msg" id="form-error"></div>
+
+    <button class="btn btn-primary" id="btn-guardar" onclick="guardarSeguimiento()" style="margin-top:16px">
+      Registrar seguimiento
+    </button>
+    <button class="btn btn-ghost" onclick="goBack('screen-dashboard')">
+      ← Volver
+    </button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════
+     PANTALLA 4 · ÉXITO
+═══════════════════════════════════════════════════ -->
+<div class="screen" id="screen-success">
+  <div class="success-icon">✅</div>
+  <div class="success-title">Seguimiento registrado</div>
+  <div class="success-desc" id="success-desc">
+    Recibirás un recordatorio por email en 10 días<br>para reevaluar a este paciente.
+  </div>
+  <button class="btn btn-success" style="max-width:360px" onclick="volverDashboard()">
+    Aceptar
+  </button>
+</div>
+
+<!-- ══════════════════════════════════════════════════
+     PANTALLA 5 · CARGANDO
+═══════════════════════════════════════════════════ -->
+<div class="screen" id="screen-loading">
+  <div class="spinner" style="width:48px;height:48px;border-width:4px"></div>
+  <div style="color:var(--muted);margin-top:20px;font-size:0.9rem">Un momento…</div>
+</div>
+
+<script>
+// ── Estado global ────────────────────────────────
+let pin = '';
+let fisioActual = null;
+let horaSeleccionada = null;
+
+// ── Generación de horas ──────────────────────────
+function generarHoras() {
+  const container = document.getElementById('horas-container');
+  container.innerHTML = '';
+  const horas = [];
+  for (let h = 8; h <= 20; h++) {
+    horas.push(`${String(h).padStart(2,'0')}:00`);
+    horas.push(`${String(h).padStart(2,'0')}:30`);
+  }
+  horas.forEach(hora => {
+    const btn = document.createElement('button');
+    btn.className = 'fecha-btn';
+    btn.textContent = hora;
+    btn.onclick = () => seleccionarHora(hora, btn);
+    container.appendChild(btn);
+  });
+}
+
+function seleccionarHora(hora, btn) {
+  document.querySelectorAll('#horas-container .fecha-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  horaSeleccionada = hora;
+}
+
+// ── Teclado numérico ─────────────────────────────
+function renderPinDisplay() {
+  const display = document.getElementById('pin-display');
+  display.innerHTML = '';
+  // Mostrar máximo 8 dígitos visualmente (colegiados pueden variar)
+  const visible = pin.length > 0 ? pin.split('') : [];
+  const len = Math.max(visible.length, 6);
+  for (let i = 0; i < len; i++) {
+    const d = document.createElement('div');
+    d.className = 'pin-char' + (i < visible.length ? ' filled' : '');
+    d.textContent = i < visible.length ? visible[i] : '';
+    display.appendChild(d);
+  }
+}
+
+function numpadPress(n) {
+  if (pin.length >= 12) return;
+  pin += n;
+  renderPinDisplay();
+  document.getElementById('login-error').textContent = '';
+}
+
+function numpadDel() {
+  pin = pin.slice(0, -1);
+  renderPinDisplay();
+}
+
+// ── Login ────────────────────────────────────────
+function validarLogin() {
+  if (pin.length < 4) {
+    document.getElementById('login-error').textContent = 'Introduce tu número de colegiado completo.';
+    return;
+  }
+  showScreen('screen-loading');
+  google.script.run
+    .withSuccessHandler(onLoginSuccess)
+    .withFailureHandler(onLoginError)
+    .validarColegiado(pin);
+}
+
+function onLoginSuccess(result) {
+  if (!result.ok) {
+    showScreen('screen-login');
+    document.getElementById('login-error').textContent = 'Número de colegiado no encontrado.';
+    pin = '';
+    renderPinDisplay();
+    return;
+  }
+  fisioActual = result;
+  // Avatar con inicial
+  document.getElementById('fisio-avatar').textContent = result.nombre.charAt(0).toUpperCase();
+  document.getElementById('fisio-nombre').textContent  = result.nombre;
+  document.getElementById('fisio-colegiado').textContent = 'Colegiado nº ' + pin;
+  cargarSeguimientos();
+}
+
+function onLoginError(err) {
+  showScreen('screen-login');
+  document.getElementById('login-error').textContent = 'Error de conexión. Inténtalo de nuevo.';
+}
+
+// ── Seguimientos ─────────────────────────────────
+function cargarSeguimientos() {
+  showScreen('screen-dashboard');
+  document.getElementById('seguim-list').innerHTML = '<div class="empty-state"><div class="spinner"></div></div>';
+  google.script.run
+    .withSuccessHandler(renderSeguimientos)
+    .withFailureHandler(() => {
+      document.getElementById('seguim-list').innerHTML = '<div class="empty-state"><p>Error al cargar.</p></div>';
+    })
+    .obtenerSeguimientosFisio(pin);
+}
+
+function renderSeguimientos(lista) {
+  const container = document.getElementById('seguim-list');
+  if (!lista || lista.length === 0) {
+    container.innerHTML = `
+      <div class="empty-state">
+        <div class="icon">📋</div>
+        <p>No tienes seguimientos activos.<br>Pulsa el botón para añadir el primero.</p>
+      </div>`;
+    return;
+  }
+
+  const hoy = new Date();
+  hoy.setHours(0,0,0,0);
+
+  container.innerHTML = lista.map(s => {
+    const partes = String(s.proximaReev).split('/');
+    const prox   = new Date(partes[2], partes[1]-1, partes[0]);
+    const diff   = Math.ceil((prox - hoy) / (1000*60*60*24));
+    const badge  = diff <= 3
+      ? `<span class="badge badge-soon">Pronto</span>`
+      : `<span class="badge badge-ok">Activo</span>`;
+
+    return `
+      <div class="seguim-item">
+        <div class="seguim-item-left">
+          <strong>📅 ${s.fecha} · ${s.hora}</strong>
+          <span>Próxima reev. ${s.proximaReev}</span>
+        </div>
+        ${badge}
+      </div>`;
+  }).join('');
+}
+
+// ── Formulario ───────────────────────────────────
+function goToForm() {
+  horaSeleccionada = null;
+  document.getElementById('input-fecha').value = today();
+  document.getElementById('form-error').textContent = '';
+  document.querySelectorAll('#horas-container .fecha-btn').forEach(b => b.classList.remove('selected'));
+  generarHoras();
+  showScreen('screen-form');
+}
+
+function today() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+
+function guardarSeguimiento() {
+  const fecha = document.getElementById('input-fecha').value;
+  if (!fecha) {
+    document.getElementById('form-error').textContent = 'Selecciona una fecha.';
+    return;
+  }
+  if (!horaSeleccionada) {
+    document.getElementById('form-error').textContent = 'Selecciona una hora.';
+    return;
+  }
+
+  // Formatear fecha a dd/MM/yyyy
+  const [y,m,d] = fecha.split('-');
+  const fechaFmt = `${d}/${m}/${y}`;
+
+  document.getElementById('btn-guardar').disabled = true;
+  showScreen('screen-loading');
+
+  google.script.run
+    .withSuccessHandler(onGuardarSuccess)
+    .withFailureHandler(onGuardarError)
+    .registrarSeguimiento(pin, fechaFmt, horaSeleccionada);
+}
+
+function onGuardarSuccess(result) {
+  document.getElementById('btn-guardar').disabled = false;
+  if (!result.ok) {
+    showScreen('screen-form');
+    document.getElementById('form-error').textContent = result.error || 'Error al guardar.';
+    return;
+  }
+  document.getElementById('success-desc').innerHTML =
+    `Seguimiento registrado.<br>Recibirás un recordatorio por email en <strong>10 días</strong> para reevaluar a este paciente.`;
+  showScreen('screen-success');
+}
+
+function onGuardarError() {
+  document.getElementById('btn-guardar').disabled = false;
+  showScreen('screen-form');
+  document.getElementById('form-error').textContent = 'Error de conexión. Inténtalo de nuevo.';
+}
+
+// ── Navegación ───────────────────────────────────
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function goBack(screenId) {
+  showScreen(screenId);
+}
+
+function volverDashboard() {
+  cargarSeguimientos();
+}
+
+function cerrarSesion() {
+  pin = '';
+  fisioActual = null;
+  horaSeleccionada = null;
+  renderPinDisplay();
+  document.getElementById('login-error').textContent = '';
+  showScreen('screen-login');
+}
+
+// ── Init ─────────────────────────────────────────
+renderPinDisplay();
+</script>
+</body>
+</html>
