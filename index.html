@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <title>Seguimientos · Fisioterapia</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
@@ -14,8 +14,9 @@
     --surface:   #161b22;
     --surface2:  #21262d;
     --border:    #30363d;
-    --accent:    #4fa3e0;
-    --accent2:   #79c0ff;
+    --accent:    #9AADCA;
+    --accent2:   #DBE5ED;
+    --brand:     #475A8E;
     --success:   #56d364;
     --danger:    #f85149;
     --text:      #e6edf3;
@@ -29,7 +30,7 @@
     background: var(--bg);
     color: var(--text);
     font-family: 'DM Sans', sans-serif;
-    font-size: 18px;
+    font-size: clamp(15px, 2.5vw, 18px);
     overflow: hidden;
     -webkit-tap-highlight-color: transparent;
     user-select: none;
@@ -41,8 +42,8 @@
     position: fixed;
     inset: 0;
     background:
-      radial-gradient(ellipse 80% 60% at 20% 10%, rgba(79,163,224,0.08) 0%, transparent 60%),
-      radial-gradient(ellipse 60% 50% at 80% 90%, rgba(86,211,100,0.05) 0%, transparent 60%);
+      radial-gradient(ellipse 80% 60% at 20% 10%, rgba(71,90,142,0.1) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 50% at 80% 90%, rgba(86,211,100,0.04) 0%, transparent 60%);
     pointer-events: none;
   }
 
@@ -54,11 +55,16 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 40px 24px;
+    padding: max(env(safe-area-inset-top, 16px), 16px) 16px 16px;
     opacity: 0;
     transform: translateY(20px);
     pointer-events: none;
     transition: opacity 0.35s ease, transform 0.35s ease;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  @media (min-width: 480px) {
+    .screen { padding: 32px 24px; }
   }
   .screen.active {
     opacity: 1;
@@ -66,23 +72,43 @@
     pointer-events: all;
   }
 
-  /* ── Logo / Header ───────────────────────────────── */
+  /* ── Logo ────────────────────────────────────────── */
+  .logo-wrap {
+    background: rgba(255,255,255,0.93);
+    border-radius: 10px;
+    padding: 6px 14px;
+    display: inline-flex;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+  .logo-wrap img {
+    height: 34px;
+    width: auto;
+    display: block;
+  }
+  @media (min-width: 480px) {
+    .logo-wrap img { height: 42px; }
+  }
+
   .logo {
     font-family: 'DM Serif Display', serif;
-    font-size: 2rem;
+    font-size: clamp(1.4rem, 4vw, 2rem);
     color: var(--accent2);
     letter-spacing: -0.5px;
-    margin-bottom: 8px;
+    margin-bottom: 6px;
     text-align: center;
   }
   .subtitle {
     color: var(--muted);
-    font-size: 0.85rem;
+    font-size: 0.8rem;
     font-weight: 300;
     letter-spacing: 2px;
     text-transform: uppercase;
-    margin-bottom: 48px;
+    margin-bottom: 28px;
     text-align: center;
+  }
+  @media (min-width: 480px) {
+    .subtitle { margin-bottom: 40px; }
   }
 
   /* ── Card ────────────────────────────────────────── */
@@ -90,43 +116,47 @@
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: var(--radius);
-    padding: 40px 36px;
+    padding: 22px 18px;
     width: 100%;
     max-width: 480px;
     box-shadow: var(--shadow);
   }
+  @media (min-width: 480px) {
+    .card { padding: 36px 32px; }
+  }
 
   .card-title {
     font-family: 'DM Serif Display', serif;
-    font-size: 1.4rem;
+    font-size: clamp(1.1rem, 3vw, 1.4rem);
     color: var(--text);
     margin-bottom: 6px;
   }
   .card-desc {
     color: var(--muted);
     font-size: 0.85rem;
-    margin-bottom: 32px;
+    margin-bottom: 26px;
     line-height: 1.6;
   }
 
   /* ── Teclado numérico ────────────────────────────── */
   .pin-display {
     display: flex;
-    gap: 10px;
+    gap: 8px;
     justify-content: center;
-    margin-bottom: 28px;
-    min-height: 56px;
+    margin-bottom: 22px;
+    min-height: 50px;
     align-items: center;
+    flex-wrap: wrap;
   }
   .pin-char {
-    width: 44px;
-    height: 56px;
+    width: clamp(32px, 7vw, 44px);
+    height: clamp(42px, 9vw, 56px);
     border: 2px solid var(--border);
     border-radius: 10px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.6rem;
+    font-size: clamp(1.1rem, 3vw, 1.6rem);
     font-weight: 600;
     color: var(--accent2);
     transition: border-color 0.2s, background 0.2s;
@@ -134,15 +164,18 @@
   }
   .pin-char.filled {
     border-color: var(--accent);
-    background: rgba(79,163,224,0.1);
+    background: rgba(154,173,202,0.1);
   }
 
   .numpad {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 12px;
-    max-width: 320px;
+    gap: 10px;
+    max-width: 300px;
     margin: 0 auto;
+  }
+  @media (min-width: 480px) {
+    .numpad { gap: 12px; max-width: 320px; }
   }
   .numpad-btn {
     background: var(--surface2);
@@ -150,9 +183,9 @@
     border-radius: 12px;
     color: var(--text);
     font-family: 'DM Sans', sans-serif;
-    font-size: 1.4rem;
+    font-size: clamp(1.1rem, 3vw, 1.4rem);
     font-weight: 500;
-    height: 72px;
+    height: clamp(58px, 12vw, 72px);
     cursor: pointer;
     transition: background 0.15s, transform 0.1s, border-color 0.15s;
     display: flex;
@@ -160,7 +193,7 @@
     justify-content: center;
   }
   .numpad-btn:active {
-    background: rgba(79,163,224,0.15);
+    background: rgba(154,173,202,0.15);
     border-color: var(--accent);
     transform: scale(0.96);
   }
@@ -168,19 +201,18 @@
     font-size: 1rem;
     color: var(--muted);
   }
-  .numpad-btn.zero {
-    grid-column: 2;
-  }
+  .numpad-btn.zero { grid-column: 2; }
   .numpad-btn.enter {
     grid-column: 3;
-    background: var(--accent);
-    border-color: var(--accent);
+    background: var(--brand);
+    border-color: var(--brand);
     color: #fff;
     font-size: 0.9rem;
     font-weight: 600;
   }
   .numpad-btn.enter:active {
-    background: var(--accent2);
+    background: var(--accent);
+    border-color: var(--accent);
   }
 
   /* ── Error ───────────────────────────────────────── */
@@ -197,22 +229,22 @@
   .fisio-badge {
     display: flex;
     align-items: center;
-    gap: 14px;
-    background: rgba(79,163,224,0.08);
-    border: 1px solid rgba(79,163,224,0.2);
+    gap: 12px;
+    background: rgba(154,173,202,0.08);
+    border: 1px solid rgba(154,173,202,0.2);
     border-radius: 12px;
-    padding: 16px 20px;
-    margin-bottom: 32px;
+    padding: 13px 16px;
+    margin-bottom: 26px;
   }
   .fisio-avatar {
-    width: 48px;
-    height: 48px;
+    width: 44px;
+    height: 44px;
     border-radius: 50%;
-    background: linear-gradient(135deg, var(--accent), var(--success));
+    background: linear-gradient(135deg, var(--brand), #344b7a);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.4rem;
+    font-size: 1.3rem;
     font-weight: 700;
     color: #fff;
     flex-shrink: 0;
@@ -220,11 +252,11 @@
   .fisio-info strong {
     display: block;
     color: var(--text);
-    font-size: 1rem;
+    font-size: 0.95rem;
   }
   .fisio-info span {
     color: var(--muted);
-    font-size: 0.8rem;
+    font-size: 0.78rem;
   }
 
   /* ── Botones ─────────────────────────────────────── */
@@ -234,22 +266,25 @@
     justify-content: center;
     gap: 10px;
     width: 100%;
-    padding: 18px 24px;
+    padding: 15px 24px;
     border-radius: 12px;
     border: none;
     font-family: 'DM Sans', sans-serif;
-    font-size: 1rem;
+    font-size: 0.95rem;
     font-weight: 600;
     cursor: pointer;
     transition: transform 0.1s, opacity 0.2s, background 0.2s;
-    margin-bottom: 12px;
+    margin-bottom: 10px;
+  }
+  @media (min-width: 480px) {
+    .btn { padding: 18px 24px; font-size: 1rem; margin-bottom: 12px; }
   }
   .btn:active { transform: scale(0.98); }
   .btn-primary {
-    background: var(--accent);
+    background: var(--brand);
     color: #fff;
   }
-  .btn-primary:hover { background: var(--accent2); }
+  .btn-primary:hover { background: #3d5080; }
   .btn-ghost {
     background: var(--surface2);
     color: var(--muted);
@@ -264,43 +299,17 @@
   .btn:disabled { opacity: 0.4; pointer-events: none; }
 
   /* ── Formulario ──────────────────────────────────── */
-  .form-group {
-    margin-bottom: 20px;
-  }
+  .form-group { margin-bottom: 18px; }
   label {
     display: block;
     color: var(--muted);
-    font-size: 0.8rem;
+    font-size: 0.78rem;
     font-weight: 500;
     letter-spacing: 1px;
     text-transform: uppercase;
     margin-bottom: 10px;
   }
-  .fecha-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-  }
-  .fecha-btn {
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    color: var(--text);
-    font-family: 'DM Sans', sans-serif;
-    font-size: 1rem;
-    padding: 14px 12px;
-    cursor: pointer;
-    transition: border-color 0.2s, background 0.2s;
-    text-align: center;
-  }
-  .fecha-btn.selected {
-    border-color: var(--accent);
-    background: rgba(79,163,224,0.12);
-    color: var(--accent2);
-    font-weight: 600;
-  }
 
-  /* Selector de fecha nativo */
   input[type="date"] {
     width: 100%;
     background: var(--surface2);
@@ -308,8 +317,8 @@
     border-radius: 10px;
     color: var(--text);
     font-family: 'DM Sans', sans-serif;
-    font-size: 1.1rem;
-    padding: 14px 16px;
+    font-size: 1rem;
+    padding: 13px 16px;
     outline: none;
     -webkit-appearance: none;
     transition: border-color 0.2s;
@@ -320,49 +329,87 @@
     cursor: pointer;
   }
 
+  /* ── Grid de horas ───────────────────────────────── */
+  .horas-scroll {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 7px;
+  }
+  @media (min-width: 400px) {
+    .horas-scroll { grid-template-columns: repeat(5, 1fr); }
+  }
+  @media (min-width: 520px) {
+    .horas-scroll { grid-template-columns: repeat(6, 1fr); }
+  }
+
+  .fecha-btn {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.82rem;
+    padding: 11px 4px;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+    text-align: center;
+  }
+  .fecha-btn.selected {
+    border-color: var(--accent);
+    background: rgba(154,173,202,0.12);
+    color: var(--accent2);
+    font-weight: 600;
+  }
+
   /* ── Estado vacío ────────────────────────────────── */
   .empty-state {
     text-align: center;
-    padding: 32px 0;
+    padding: 26px 0;
     color: var(--muted);
   }
-  .empty-state .icon { font-size: 2.5rem; margin-bottom: 12px; }
-  .empty-state p { font-size: 0.9rem; line-height: 1.6; }
+  .empty-state .icon { font-size: 2.2rem; margin-bottom: 10px; }
+  .empty-state p { font-size: 0.88rem; line-height: 1.6; }
 
   /* ── Lista seguimientos ──────────────────────────── */
   .seguim-list {
     display: flex;
     flex-direction: column;
-    gap: 10px;
-    margin-bottom: 24px;
-    max-height: 280px;
+    gap: 8px;
+    margin-bottom: 18px;
+    max-height: min(260px, 28dvh);
     overflow-y: auto;
     padding-right: 4px;
+  }
+  @media (min-width: 768px) {
+    .seguim-list { max-height: 320px; }
   }
   .seguim-item {
     background: var(--surface2);
     border: 1px solid var(--border);
     border-radius: 10px;
-    padding: 14px 16px;
+    padding: 12px 14px;
     display: flex;
     justify-content: space-between;
     align-items: center;
+    gap: 8px;
   }
   .seguim-item-left strong {
     display: block;
-    font-size: 0.95rem;
+    font-size: 0.9rem;
     color: var(--text);
   }
   .seguim-item-left span {
-    font-size: 0.78rem;
+    font-size: 0.76rem;
     color: var(--muted);
   }
   .badge {
-    font-size: 0.72rem;
+    font-size: 0.7rem;
     font-weight: 600;
     padding: 4px 10px;
     border-radius: 20px;
     letter-spacing: 0.5px;
+    white-space: nowrap;
+    flex-shrink: 0;
   }
   .badge-ok {
     background: rgba(86,211,100,0.15);
@@ -375,8 +422,8 @@
 
   /* ── Éxito ───────────────────────────────────────── */
   .success-icon {
-    font-size: 4rem;
-    margin-bottom: 16px;
+    font-size: 3.5rem;
+    margin-bottom: 14px;
     animation: pop 0.4s ease;
   }
   @keyframes pop {
@@ -386,17 +433,18 @@
   }
   .success-title {
     font-family: 'DM Serif Display', serif;
-    font-size: 1.6rem;
+    font-size: clamp(1.3rem, 4vw, 1.6rem);
     color: var(--success);
     margin-bottom: 8px;
     text-align: center;
   }
   .success-desc {
     color: var(--muted);
-    font-size: 0.9rem;
+    font-size: 0.88rem;
     text-align: center;
     line-height: 1.6;
-    margin-bottom: 32px;
+    margin-bottom: 28px;
+    max-width: 340px;
   }
 
   /* ── Spinner ─────────────────────────────────────── */
@@ -409,13 +457,6 @@
     margin: 0 auto;
   }
   @keyframes spin { to { transform: rotate(360deg); } }
-
-  /* ── Horas ───────────────────────────────────────── */
-  .horas-scroll {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-  }
 </style>
 </head>
 <body>
@@ -424,6 +465,13 @@
      PANTALLA 1 · LOGIN (número de colegiado)
 ═══════════════════════════════════════════════════ -->
 <div class="screen active" id="screen-login">
+  <div class="logo-wrap">
+    <img
+      src="https://www.clinicauniversitarialasalle.es/wp-content/uploads/2024/08/la-salle.png"
+      alt="Clínica Universitaria La Salle"
+      loading="eager"
+    >
+  </div>
   <div class="logo">Seguimientos</div>
   <div class="subtitle">Control de pacientes</div>
 
@@ -456,6 +504,13 @@
      PANTALLA 2 · DASHBOARD FISIO
 ═══════════════════════════════════════════════════ -->
 <div class="screen" id="screen-dashboard">
+  <div class="logo-wrap">
+    <img
+      src="https://www.clinicauniversitarialasalle.es/wp-content/uploads/2024/08/la-salle.png"
+      alt="Clínica Universitaria La Salle"
+      loading="eager"
+    >
+  </div>
   <div class="logo">Seguimientos</div>
 
   <div class="card" style="max-width:520px">
