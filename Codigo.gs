@@ -9,6 +9,12 @@ const HOJA_FISIOS     = 'Fisios';
 const HOJA_SEGUIM     = 'Seguimientos';
 const DIAS_SEGUIM     = 10;
 
+// Normaliza el número de colegiado eliminando ceros a la izquierda para comparación.
+// Permite que el valor en Sheets sea número (11312) o texto ('011312') indistintamente.
+function normColegiado(v) {
+  return String(v).trim().replace(/^0+(\d)/, '$1');
+}
+
 // ── Punto de entrada web ────────────────────────────────────
 function doGet(e) {
   const params = e.parameter;
@@ -43,8 +49,7 @@ function validarColegiado(numColegiado) {
   const datos = hoja.getDataRange().getValues();
 
   for (let i = 1; i < datos.length; i++) {
-    const num = String(datos[i][1]).trim(); // columna B: Num_Colegiado
-    if (num === String(numColegiado).trim()) {
+    if (normColegiado(datos[i][1]) === normColegiado(numColegiado)) {
       return { ok: true, nombre: datos[i][0], email: datos[i][2], fila: i + 1 };
     }
   }
@@ -67,7 +72,7 @@ function registrarSeguimiento(numColegiado, fechaVisita, horaVisita) {
     const datos = hoja.getDataRange().getValues();
     for (let i = 1; i < datos.length; i++) {
       if (
-        String(datos[i][2]).trim() === String(numColegiado).trim() &&
+        normColegiado(datos[i][2]) === normColegiado(numColegiado) &&
         datos[i][4] === fechaVisita &&
         datos[i][5] === horaVisita &&
         datos[i][6] === 'activo'
@@ -81,17 +86,19 @@ function registrarSeguimiento(numColegiado, fechaVisita, horaVisita) {
     proximaReev.setDate(proximaReev.getDate() + DIAS_SEGUIM);
     const id             = 'SEG-' + ahora.getTime();
 
-    hoja.appendRow([
-      id,                          // A: ID
-      fisio.nombre,                // B: Nombre fisio
-      numColegiado,                // C: Num colegiado
-      fisio.email,                 // D: Email fisio
-      fechaVisita,                 // E: Fecha primera visita
-      horaVisita,                  // F: Hora primera visita
-      'activo',                    // G: Estado
-      Utilities.formatDate(ahora, Session.getScriptTimeZone(), 'dd/MM/yyyy'),         // H: Fecha registro
-      Utilities.formatDate(proximaReev, Session.getScriptTimeZone(), 'dd/MM/yyyy'),   // I: Próxima reevaluación
-    ]);
+    const nextRow = hoja.getLastRow() + 1;
+    hoja.getRange(nextRow, 3).setNumberFormat('@'); // preserve colegiado as text
+    hoja.getRange(nextRow, 1, 1, 9).setValues([[
+      id,
+      fisio.nombre,
+      numColegiado,
+      fisio.email,
+      fechaVisita,
+      horaVisita,
+      'activo',
+      Utilities.formatDate(ahora, Session.getScriptTimeZone(), 'dd/MM/yyyy'),
+      Utilities.formatDate(proximaReev, Session.getScriptTimeZone(), 'dd/MM/yyyy'),
+    ]]);
 
     return { ok: true, nombre: fisio.nombre };
   } catch (err) {
@@ -110,16 +117,20 @@ function obtenerSeguimientosFisio(numColegiado) {
 
   for (let i = 1; i < datos.length; i++) {
     if (
-      String(datos[i][2]).trim() === String(numColegiado).trim() &&
+      normColegiado(datos[i][2]) === normColegiado(numColegiado) &&
       datos[i][6] === 'activo'
     ) {
+      const fmt = (v, pattern) =>
+        v instanceof Date
+          ? Utilities.formatDate(v, Session.getScriptTimeZone(), pattern)
+          : String(v);
       lista.push({
-        id:          datos[i][0],
+        id:          String(datos[i][0]),
         fila:        i + 1,
-        fecha:       datos[i][4],
-        hora:        datos[i][5],
-        registro:    datos[i][7],
-        proximaReev: datos[i][8],
+        fecha:       fmt(datos[i][4], 'dd/MM/yyyy'),
+        hora:        fmt(datos[i][5], 'HH:mm'),
+        registro:    fmt(datos[i][7], 'dd/MM/yyyy'),
+        proximaReev: fmt(datos[i][8], 'dd/MM/yyyy'),
       });
     }
   }
