@@ -15,6 +15,15 @@ function normColegiado(v) {
   return String(v).trim().replace(/^0+(\d)/, '$1');
 }
 
+// ── Menú personalizado en el Sheet ──────────────────────────
+
+function onOpen() {
+  SpreadsheetApp.getUi()
+    .createMenu('🛠 Tests')
+    .addItem('Enviar correo de prueba', 'testPlantillaRecordatorio')
+    .addToUi();
+}
+
 // ── Punto de entrada web ────────────────────────────────────
 function doGet(e) {
   const params = e.parameter;
@@ -282,16 +291,58 @@ function enviarRecordatoriosDiarios() {
 // ── Test visual de plantilla de email ───────────────────────
 
 /**
- * Envía un correo de prueba al propietario del script para revisar la plantilla.
- * Ejecutar manualmente desde el editor de Apps Script.
+ * Envía un correo de prueba para revisar la plantilla visualmente.
+ * Pide email y nº de fila mediante diálogos al ejecutar desde el editor.
+ * Si se indica una fila real, carga sus datos y genera enlaces funcionales.
+ * Si se deja vacío, usa datos ficticios y enlaces de ejemplo.
  */
 function testPlantillaRecordatorio() {
-  const destinatario = Session.getActiveUser().getEmail();
-  const nombreFisio  = 'Ana García';
-  const fechaVisita  = '15/05/2026';
-  const horaVisita   = '10:30';
-  const urlReev      = '#reev-test';
-  const urlCerrar    = '#cerrar-test';
+  const ui = SpreadsheetApp.getUi();
+
+  const resEmail = ui.prompt(
+    'Test · Email destinatario',
+    'Deja vacío para usar tu email (' + Session.getActiveUser().getEmail() + '):',
+    ui.ButtonSet.OK_CANCEL
+  );
+  if (resEmail.getSelectedButton() !== ui.Button.OK) return;
+  const destinatario = resEmail.getResponseText().trim() || Session.getActiveUser().getEmail();
+
+  const resFila = ui.prompt(
+    'Test · Fila de Seguimientos',
+    'Nº de fila en la hoja Seguimientos (deja vacío para datos ficticios):',
+    ui.ButtonSet.OK_CANCEL
+  );
+  if (resFila.getSelectedButton() !== ui.Button.OK) return;
+
+  const urlDetectada = ScriptApp.getService().getUrl();
+  const resUrl = ui.prompt(
+    'Test · URL de la Web App',
+    'URL base para los botones (deja vacío para usar la detectada: ' + urlDetectada + '):',
+    ui.ButtonSet.OK_CANCEL
+  );
+  if (resUrl.getSelectedButton() !== ui.Button.OK) return;
+  const urlBase = resUrl.getResponseText().trim() || urlDetectada;
+
+  let nombreFisio, fechaVisita, horaVisita, urlReev, urlCerrar;
+
+  const filaNum = parseInt(resFila.getResponseText().trim(), 10);
+  if (!isNaN(filaNum) && filaNum > 1) {
+    const fila = SpreadsheetApp.openById(SHEET_ID)
+      .getSheetByName(HOJA_SEGUIM)
+      .getRange(filaNum, 1, 1, 9).getValues()[0];
+    const fmt = (v, p) => v instanceof Date ? Utilities.formatDate(v, Session.getScriptTimeZone(), p) : String(v);
+    nombreFisio = fila[1];
+    fechaVisita = fmt(fila[4], 'dd/MM/yyyy');
+    horaVisita  = fmt(fila[5], 'HH:mm');
+    urlReev     = `${urlBase}?accion=reevaluar&id=${filaNum}`;
+    urlCerrar   = `${urlBase}?accion=cerrar&id=${filaNum}`;
+  } else {
+    nombreFisio = 'Ana García';
+    fechaVisita = '15/05/2026';
+    horaVisita  = '10:30';
+    urlReev     = '#reev-test';
+    urlCerrar   = '#cerrar-test';
+  }
 
   const asunto = `🔔 [TEST] Reevaluación pendiente · Paciente ${fechaVisita} ${horaVisita}`;
   const cuerpo = `<!DOCTYPE html>
