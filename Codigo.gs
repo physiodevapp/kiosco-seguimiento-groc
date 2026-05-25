@@ -191,26 +191,77 @@ function enviarRecordatoriosDiarios() {
       const urlReev     = `${urlBase}?accion=reevaluar&id=${filaNum}`;
 
       const asunto = `🔔 Reevaluación pendiente · Paciente ${fechaVisita} ${horaVisita}`;
-      const cuerpo = `
-        <div style="font-family: 'Helvetica Neue', sans-serif; max-width: 520px; margin: 0 auto; padding: 32px; background: #f9f9f9; border-radius: 12px;">
-          <h2 style="color: #1a1a2e; margin-bottom: 4px;">Recordatorio de reevaluación</h2>
-          <p style="color: #555; margin-top: 0;">Hola <strong>${nombreFisio}</strong>,</p>
-          <p style="color: #555;">Han pasado ${DIAS_SEGUIM} días desde la primera visita de tu paciente:</p>
-          <div style="background: #fff; border-left: 4px solid #4a9eff; padding: 16px 20px; border-radius: 8px; margin: 20px 0;">
-            <strong style="font-size: 1.1em;">📅 ${fechaVisita} · ${horaVisita}</strong>
-          </div>
-          <p style="color: #555;">¿Qué quieres hacer?</p>
-          <div style="margin: 24px 0; display: flex; gap: 12px; flex-direction: column;">
-            <a href="${urlReev}" style="display: block; text-align: center; background: #4a9eff; color: white; padding: 14px 24px; border-radius: 8px; text-decoration: none; font-weight: 600;">
-              ✅ Reevaluado — continuar seguimiento
-            </a>
-            <a href="${urlCerrar}" style="display: block; text-align: center; background: #ff6b6b; color: white; padding: 14px 24px; border-radius: 8px; text-decoration: none; font-weight: 600;">
-              🔴 Finalizar seguimiento
-            </a>
-          </div>
-          <p style="color: #aaa; font-size: 0.8em;">Si no haces nada, recibirás otro recordatorio en ${DIAS_SEGUIM} días.</p>
-        </div>
-      `;
+      const cuerpo = `<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+</head>
+<body style="margin:0;padding:0;background:#f0f2f5;">
+  <table width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#f0f2f5" style="background:#f0f2f5;">
+    <tr>
+      <td align="center" style="padding:32px 16px;">
+        <table width="520" cellpadding="0" cellspacing="0" border="0" bgcolor="#f9f9f9" style="max-width:520px;background:#f9f9f9;border-radius:12px;">
+          <tr>
+            <td style="padding:32px 32px 0 32px;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;">
+              <h2 style="color:#1a1a2e;margin:0 0 16px 0;font-size:22px;font-weight:700;">Recordatorio de reevaluación</h2>
+              <p style="color:#555555;margin:0 0 12px 0;font-size:15px;">Hola <strong>${nombreFisio}</strong>,</p>
+              <p style="color:#555555;margin:0;font-size:15px;">Han pasado <strong>${DIAS_SEGUIM} días</strong> desde la primera visita de tu paciente:</p>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:20px 32px;">
+              <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td bgcolor="#ffffff" style="background:#ffffff;border-left:4px solid #4a9eff;padding:16px 20px;border-radius:8px;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;font-size:16px;font-weight:700;color:#1a1a2e;">
+                    📅 ${fechaVisita} · ${horaVisita}
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:0 32px 16px 32px;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;">
+              <p style="color:#555555;margin:0;font-size:15px;">¿Qué quieres hacer?</p>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:0 32px 12px 32px;">
+              <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td align="center" bgcolor="#4a9eff" style="border-radius:8px;background:#4a9eff;">
+                    <a href="${urlReev}" target="_blank" style="display:block;padding:14px 24px;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;font-size:15px;font-weight:600;color:#ffffff;text-decoration:none;text-align:center;">
+                      ✅ Reevaluado — continuar seguimiento
+                    </a>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:0 32px 28px 32px;">
+              <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td align="center" bgcolor="#ff6b6b" style="border-radius:8px;background:#ff6b6b;">
+                    <a href="${urlCerrar}" target="_blank" style="display:block;padding:14px 24px;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;font-size:15px;font-weight:600;color:#ffffff;text-decoration:none;text-align:center;">
+                      🔴 Finalizar seguimiento
+                    </a>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:16px 32px 28px 32px;border-top:1px solid #e5e5e5;">
+              <p style="font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;color:#aaaaaa;font-size:12px;margin:0;">Si no haces nada, recibirás otro recordatorio en ${DIAS_SEGUIM} días.</p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`;
 
       MailApp.sendEmail({
         to:       emailFisio,
@@ -226,6 +277,97 @@ function enviarRecordatoriosDiarios() {
       );
     }
   }
+}
+
+// ── Test visual de plantilla de email ───────────────────────
+
+/**
+ * Envía un correo de prueba al propietario del script para revisar la plantilla.
+ * Ejecutar manualmente desde el editor de Apps Script.
+ */
+function testPlantillaRecordatorio() {
+  const destinatario = Session.getActiveUser().getEmail();
+  const nombreFisio  = 'Ana García';
+  const fechaVisita  = '15/05/2026';
+  const horaVisita   = '10:30';
+  const urlReev      = '#reev-test';
+  const urlCerrar    = '#cerrar-test';
+
+  const asunto = `🔔 [TEST] Reevaluación pendiente · Paciente ${fechaVisita} ${horaVisita}`;
+  const cuerpo = `<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+</head>
+<body style="margin:0;padding:0;background:#f0f2f5;">
+  <table width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#f0f2f5" style="background:#f0f2f5;">
+    <tr>
+      <td align="center" style="padding:32px 16px;">
+        <table width="520" cellpadding="0" cellspacing="0" border="0" bgcolor="#f9f9f9" style="max-width:520px;background:#f9f9f9;border-radius:12px;">
+          <tr>
+            <td style="padding:32px 32px 0 32px;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;">
+              <h2 style="color:#1a1a2e;margin:0 0 16px 0;font-size:22px;font-weight:700;">Recordatorio de reevaluación</h2>
+              <p style="color:#555555;margin:0 0 12px 0;font-size:15px;">Hola <strong>${nombreFisio}</strong>,</p>
+              <p style="color:#555555;margin:0;font-size:15px;">Han pasado <strong>${DIAS_SEGUIM} días</strong> desde la primera visita de tu paciente:</p>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:20px 32px;">
+              <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td bgcolor="#ffffff" style="background:#ffffff;border-left:4px solid #4a9eff;padding:16px 20px;border-radius:8px;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;font-size:16px;font-weight:700;color:#1a1a2e;">
+                    📅 ${fechaVisita} · ${horaVisita}
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:0 32px 16px 32px;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;">
+              <p style="color:#555555;margin:0;font-size:15px;">¿Qué quieres hacer?</p>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:0 32px 12px 32px;">
+              <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td align="center" bgcolor="#4a9eff" style="border-radius:8px;background:#4a9eff;">
+                    <a href="${urlReev}" target="_blank" style="display:block;padding:14px 24px;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;font-size:15px;font-weight:600;color:#ffffff;text-decoration:none;text-align:center;">
+                      ✅ Reevaluado — continuar seguimiento
+                    </a>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:0 32px 28px 32px;">
+              <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td align="center" bgcolor="#ff6b6b" style="border-radius:8px;background:#ff6b6b;">
+                    <a href="${urlCerrar}" target="_blank" style="display:block;padding:14px 24px;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;font-size:15px;font-weight:600;color:#ffffff;text-decoration:none;text-align:center;">
+                      🔴 Finalizar seguimiento
+                    </a>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:16px 32px 28px 32px;border-top:1px solid #e5e5e5;">
+              <p style="font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;color:#aaaaaa;font-size:12px;margin:0;">Si no haces nada, recibirás otro recordatorio en ${DIAS_SEGUIM} días.</p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`;
+
+  MailApp.sendEmail({ to: destinatario, subject: asunto, htmlBody: cuerpo });
+  Logger.log(`Correo de prueba enviado a ${destinatario}`);
 }
 
 // ── Acciones desde enlaces del email ────────────────────────
